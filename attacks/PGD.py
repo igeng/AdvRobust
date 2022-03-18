@@ -1,26 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 '''
-@Project : AdvRobust
-@File    : FGSM.py
+@Project : AdvRobust 
+@File    : PGD.py
 @Author  : igeng
-@Date    : 2022/3/18 11:05
+@Date    : 2022/3/18 16:16 
 @Descrip :
 '''
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from Attacks import Attack
 
-class FGSM(Attack):
+class PGD(Attack):
     """
-    Fast Gradient Sign Method (FGSM)
+    Project Gradient Dscent (PGD)
     Paper link:
     :argument: target_model {nn.Module} -- Target model to be attacked.
     :argument: eps {float} -- Magnitude of perturbation.
     """
+
     def __init__(self, target_model, args):
-        super(FGSM, self).__init__()
+        super(PGD, self).__init__()
         self.eps = args.epsilon
         self.device = args.device
         self.target_model = target_model
@@ -38,10 +38,10 @@ class FGSM(Attack):
         imgs.requires_grad = True
 
         outputs = self.target_model(imgs)
-        # criterion = nn.CrossEntropyLoss
-        loss = F.cross_entropy(outputs, labels)
+        criterion = nn.CrossEntropyLoss
+        loss = criterion(outputs, labels)
 
-        gradients = torch.autograd.grad(loss, [imgs])[0]
+        gradients = torch.autograd.grad(loss, imgs)[0]
         # consider eps is a vector ?
         adv_examples = imgs + (self.eps * gradients.sign())
         adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()

@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 '''
 @Project : AdvRobust
-@File    : attacks.py
+@File    : Attacks.py
 @Author  : igeng
 @Date    : 2022/3/18 10:36
 @Descrip :
@@ -15,7 +15,7 @@ class Attack(object):
     :param
     
     """
-    def __init__(self, attack_type, target_model, img_type='float'):
+    def __init__(self):
         return
 
     def perturb(self, *args):
