@@ -14,5 +14,8 @@ class FGSM(Attack):
     """
     Fast Gradient Sign Method (FGSM)
     Paper link:
-
+    :argument: target_model {nn.Module} -- Target model to be attacked.
+    :argument: eps {float} -- Magnitude of perturbation.
     """
+    def __init__(self, target_model, args):
+        super(FGSM, self).__init__("FGSM", target_model)

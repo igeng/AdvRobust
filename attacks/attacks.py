@@ -15,7 +15,7 @@ class Attack(object):
     :param
     
     """
-    def __init__(self, attack_type, target_cls, img_type='float'):
+    def __init__(self, attack_type, target_model, img_type='float'):
         return
 
     def perturb(self):
