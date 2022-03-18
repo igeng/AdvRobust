@@ -19,3 +19,27 @@ class FGSM(Attack):
     """
     def __init__(self, target_model, args):
         super(FGSM, self).__init__("FGSM", target_model)
+        self.eps = args.fgsm_eps
+
+    def perturb(self, imgs, labels):
+        """
+        Override perturb function in Attack class.
+        :param imgs: attacked benign input
+        :param labels: orginal labels of benign input
+        :return:
+        """
+        imgs = imgs.to(self.device)
+        labels = labels.to(self.device)
+
+        imgs.requires_grad = True
+
+        outputs = self.target_model(imgs)
+        criterion = nn.CrossEntropyLoss
+        loss = criterion(outputs, labels)
+
+        gradients = torch.autograd.grad(loss, imgs)[0]
+        # consider eps is a vector ?
+        adv_examples = imgs + (self.eps * gradients.sign())
+        adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()
+
+        return adv_examples, labels

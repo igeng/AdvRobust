@@ -18,5 +18,11 @@ class Attack(object):
     def __init__(self, attack_type, target_model, img_type='float'):
         return
 
-    def perturb(self):
-        return
+    def perturb(self, *args):
+        """
+        Generate adversarial perturbations,
+        this function should be overridden by each attack method.
+        :param args:
+        :return:
+        """
+        return NotImplementedError
