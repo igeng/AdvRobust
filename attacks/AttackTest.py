@@ -26,6 +26,7 @@ import numpy as np
 from models import *
 
 from FGSM import FGSM
+from PGD import PGD
 
 
 def attack_test(adversary, testloader, args, net):
@@ -48,19 +49,24 @@ def attack_test(adversary, testloader, args, net):
         print('Progress : {:.2f}% / Accuracy : {:.2f}%'.format(
             (batch_step + 1) / batch_total * 100, acc), end='\r'
         )
-    print('Model: {} is attacked by {}. The predict accuracy is {}.'.format(args.model, 'FSGM', acc))
+    print('Model: {} is attacked by {}. The predict accuracy is {}.'.format(args.model, args.attack, acc))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Adversarial Attack Test')
     parser.add_argument('--seed', default=199592, type=int)
+    parser.add_argument('--attack', default='PGD', type=str)
     parser.add_argument('--model', default='smallcnn', type=str)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--iteration', default=100, type=int)
-    parser.add_argument('--epsilon', default=8.0 / 255, type=float)
-    parser.add_argument('--step_size', default=2.0 / 255, type=float)
+    # FGSM attack setting.
+    parser.add_argument('--fgsm_epsilon', default=2.0 / 255, type=float)
+    # PGD attack setting.
+    parser.add_argument('--pgd_epsilon', default=0.3, type=float)
+    parser.add_argument('--pgd_eps_step', default=2.0 / 255, type=float)
+    parser.add_argument('--pgd_n_steps', default=40, type=int)
     args = parser.parse_args()
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    print('Arguments For Test:')
+    print('Arguments for attack:')
     print(args)
 
     # Set random seed.
@@ -72,12 +78,12 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    print('Preparing Test Data!')
+    print('Preparing attack data!')
     transforms_test = transforms.Compose([transforms.ToTensor()])
     test_set = torchvision.datasets.CIFAR10(root='../datasets', train=False, download=True, transform=transforms_test)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
-    print('Building Model {}!'.format(args.model))
+    print('Building model {}!'.format(args.model))
     if args.model == 'smallcnn':
         net = SmallCNN()
     elif args.model == 'resnet18':
@@ -94,6 +100,7 @@ if __name__ == "__main__":
     net.load_state_dict(pre_model['net'])
 
     advesary = FGSM(net, args)
+    # advesary = PGD(net, args)
 
     attack_test(advesary, test_loader, args, net)
 
