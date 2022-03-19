@@ -9,6 +9,7 @@
 '''
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from Attacks import Attack
 
 class PGD(Attack):
@@ -20,30 +21,37 @@ class PGD(Attack):
     """
 
     def __init__(self, target_model, args):
-        super(PGD, self).__init__()
-        self.eps = args.epsilon
+        super(PGD, self).__init__("PGD", target_model)
+        self.eps = args.pgd_epsilon
+        self.eps_step = args.pgd_eps_step
+        self.n_steps = args.pgd_n_steps
         self.device = args.device
-        self.target_model = target_model
 
     def perturb(self, imgs, labels):
         """
         Override perturb function in Attack class.
         :param imgs: attacked benign input
         :param labels: orginal labels of benign input
-        :return:
+        :return: adversarial examples
         """
-        imgs = imgs.to(self.device)
-        labels = labels.to(self.device)
+        imgs = imgs.clone().detach().to(self.device)
+        labels = labels.clone().detach().to(self.device)
 
-        imgs.requires_grad = True
+        adv_examples = imgs.clone().detach()
 
-        outputs = self.target_model(imgs)
-        criterion = nn.CrossEntropyLoss
-        loss = criterion(outputs, labels)
+        for step in range(self.n_steps):
+            # print("PGD attack {} step!".format(step))
+            adv_examples.requires_grad = True
+            outputs = self.target_model(adv_examples)
+            # Use torch.nn loss
+            # criterion = nn.CrossEntropyLoss
+            # loss = criterion(outputs, labels)
+            loss = F.cross_entropy(outputs, labels)
 
-        gradients = torch.autograd.grad(loss, imgs)[0]
-        # consider eps is a vector ?
-        adv_examples = imgs + (self.eps * gradients.sign())
-        adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()
+            gradients = torch.autograd.grad(loss, adv_examples)[0]
+            # consider eps is a vector ?
+            adv_examples = adv_examples.detach() + self.eps_step * gradients.sign()
+            perturbation = torch.clamp(adv_examples - imgs, min=-self.eps, max=self.eps)
+            adv_examples = torch.clamp(adv_examples + perturbation, min=0, max=1).detach()
 
         return adv_examples
