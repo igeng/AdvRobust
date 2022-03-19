@@ -15,8 +15,8 @@ class Attack(object):
     :param
     
     """
-    def __init__(self):
-        return
+    def __init__(self, target_model):
+        self.target_model = target_model
 
     def perturb(self, *args):
         """

@@ -20,10 +20,9 @@ class FGSM(Attack):
     :argument: eps {float} -- Magnitude of perturbation.
     """
     def __init__(self, target_model, args):
-        super(FGSM, self).__init__()
+        super(FGSM, self).__init__(target_model)
         self.eps = args.epsilon
         self.device = args.device
-        self.target_model = target_model
 
     def perturb(self, imgs, labels):
         """
@@ -43,7 +42,6 @@ class FGSM(Attack):
 
         gradients = torch.autograd.grad(loss, [imgs])[0]
         # consider eps is a vector ?
-        adv_examples = imgs + (self.eps * gradients.sign())
-        adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()
+        adv_examples = torch.clamp(imgs + (self.eps * gradients.sign()), min=0, max=1).detach()
 
         return adv_examples
