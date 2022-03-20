@@ -64,6 +64,7 @@ if __name__ == "__main__":
     parser.add_argument('--pgd_epsilon', default=0.3, type=float)
     parser.add_argument('--pgd_eps_step', default=2.0 / 255, type=float)
     parser.add_argument('--pgd_n_steps', default=40, type=int)
+    parser.add_argument('--random_start', default=True, type=bool)
     args = parser.parse_args()
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print('Arguments for attack:')
@@ -99,8 +100,8 @@ if __name__ == "__main__":
     net = torch.nn.DataParallel(net)
     net.load_state_dict(pre_model['net'])
 
-    advesary = FGSM(net, args)
-    # advesary = PGD(net, args)
+    # advesary = FGSM(net, args)
+    advesary = PGD(net, args)
 
     attack_test(advesary, test_loader, args, net)
 

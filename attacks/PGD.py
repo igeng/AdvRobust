@@ -26,6 +26,7 @@ class PGD(Attack):
         self.eps_step = args.pgd_eps_step
         self.n_steps = args.pgd_n_steps
         self.device = args.device
+        self.random_start = args.random_start
 
     def perturb(self, imgs, labels):
         """
@@ -38,6 +39,10 @@ class PGD(Attack):
         labels = labels.clone().detach().to(self.device)
 
         adv_examples = imgs.clone().detach()
+
+        if self.random_start:
+            adv_examples = adv_examples + torch.empty_like(adv_examples).uniform_(-self.eps, self.eps)
+            adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()
 
         for step in range(self.n_steps):
             # print("PGD attack {} step!".format(step))
