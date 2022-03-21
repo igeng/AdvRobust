@@ -10,7 +10,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from Attacks import Attack
+from .Attacks import Attack
 
 class PGDL2(Attack):
     f"""
@@ -33,7 +33,7 @@ class PGDL2(Attack):
         self.n_steps = args.pgd_n_steps
         self.device = args.device
         self.random_start = args.random_start
-        self.eps_ord = args.eps_ord
+        self.eps_ord = args.norm_ord
         self.eps_division = args.eps_division
 
     def perturb(self, imgs, labels):
