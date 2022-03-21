@@ -25,10 +25,7 @@ import random
 import numpy as np
 from models import *
 
-from FGSM import FGSM
-from PGD import PGD
-from PGDL2 import PGDL2
-
+from attacks import *
 
 def attack_test(adversary, testloader, args, net):
     net.eval()
@@ -59,15 +56,20 @@ if __name__ == "__main__":
     parser.add_argument('--model', default='smallcnn', type=str)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--iteration', default=100, type=int)
+
+    parser.add_argument('--random_start', default=True, type=bool)
+    parser.add_argument('--norm_ord', default='Linf', type=str)
+    parser.add_argument('--eps_division', default=1e-10, type=float)
     # FGSM attack setting.
     parser.add_argument('--fgsm_epsilon', default=2.0 / 255, type=float)
     # PGD attack setting.
     parser.add_argument('--pgd_epsilon', default=0.3, type=float)
     parser.add_argument('--pgd_eps_step', default=2.0 / 255, type=float)
     parser.add_argument('--pgd_n_steps', default=40, type=int)
-    parser.add_argument('--random_start', default=True, type=bool)
-    parser.add_argument('--eps_ord', default='Linf', type=str)
-    parser.add_argument('--eps_division', default=1e-10, type=float)
+    # BIM(I-FGSM) attack setting.
+    parser.add_argument('--bim_epsilon', default=4.0/255, type=float)
+    parser.add_argument('--bim_eps_iter', default=1.0 / 255, type=float)
+    parser.add_argument('--bim_n_iters', default=10, type=int)
     args = parser.parse_args()
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print('Arguments for attack:')
@@ -84,7 +86,7 @@ if __name__ == "__main__":
 
     print('Preparing attack data!')
     transforms_test = transforms.Compose([transforms.ToTensor()])
-    test_set = torchvision.datasets.CIFAR10(root='../datasets', train=False, download=True, transform=transforms_test)
+    test_set = torchvision.datasets.CIFAR10(root='./datasets', train=False, download=True, transform=transforms_test)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
     print('Building model {}!'.format(args.model))
@@ -99,13 +101,14 @@ if __name__ == "__main__":
 
     print('Loading {} From pre_models!'.format(args.model))
     # pre_model = torch.load(os.path.join('../pre_models/', args.model))
-    pre_model = torch.load('../pre_models/pgd_adversarial_training_smallcnn')
+    pre_model = torch.load('./pre_models/pgd_adversarial_training_smallcnn')
     net = torch.nn.DataParallel(net)
     net.load_state_dict(pre_model['net'])
 
     # advesary = FGSM(net, args)
     # advesary = PGD(net, args)
-    advesary = PGDL2(net, args)
+    # advesary = PGDL2(net, args)
+    advesary = BIM(net, args)
 
     attack_test(advesary, test_loader, args, net)
 
