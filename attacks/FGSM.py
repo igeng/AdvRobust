@@ -36,13 +36,11 @@ class FGSM(Attack):
 
         imgs.requires_grad = True
         outputs = self.target_model(imgs)
-        # Use torch.nn loss
-        # criterion = nn.CrossEntropyLoss()
-        # loss = criterion(outputs, labels)
+
         loss = F.cross_entropy(outputs, labels)
 
         gradients = torch.autograd.grad(loss, [imgs])[0]
-        # consider eps is a vector ?
+
         adv_examples = imgs + (self.eps * gradients.sign())
         adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()
 

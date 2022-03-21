@@ -56,7 +56,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', default='smallcnn', type=str)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--iteration', default=100, type=int)
-
+    parser.add_argument('--momentum_decay', default=0.9, type=float)
     parser.add_argument('--random_start', default=True, type=bool)
     parser.add_argument('--norm_ord', default='Linf', type=str)
     parser.add_argument('--eps_division', default=1e-10, type=float)
@@ -70,6 +70,11 @@ if __name__ == "__main__":
     parser.add_argument('--bim_epsilon', default=4.0/255, type=float)
     parser.add_argument('--bim_eps_iter', default=1.0 / 255, type=float)
     parser.add_argument('--bim_n_iters', default=10, type=int)
+    # MI-FGSM attack setting.
+    parser.add_argument('--mim_epsilon', default=8.0 / 255, type=float)
+    parser.add_argument('--mim_eps_iter', default=2.0 / 255, type=float)
+    parser.add_argument('-mim_n_iters', default=5, type=int)
+
     args = parser.parse_args()
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print('Arguments for attack:')
@@ -108,7 +113,8 @@ if __name__ == "__main__":
     # advesary = FGSM(net, args)
     # advesary = PGD(net, args)
     # advesary = PGDL2(net, args)
-    advesary = BIM(net, args)
+    # advesary = BIM(net, args)
+    advesary = MIM(net, args)
 
     attack_test(advesary, test_loader, args, net)
 

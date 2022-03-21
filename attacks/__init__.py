@@ -12,3 +12,4 @@ from .FGSM import *
 from .PGD import *
 from .PGDL2 import *
 from .BIM import *
+from .MIM import *

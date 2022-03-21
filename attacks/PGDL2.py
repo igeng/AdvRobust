@@ -57,9 +57,7 @@ class PGDL2(Attack):
             # print("PGD attack {} step!".format(step))
             adv_examples.requires_grad = True
             outputs = self.target_model(adv_examples)
-            # Use torch.nn loss
-            # criterion = nn.CrossEntropyLoss
-            # loss = criterion(outputs, labels)
+
             loss = F.cross_entropy(outputs, labels)
 
             gradients = torch.autograd.grad(loss, adv_examples)[0] # 100 * 3 * 32 * 32
