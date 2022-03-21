@@ -27,6 +27,7 @@ from models import *
 
 from FGSM import FGSM
 from PGD import PGD
+from PGDL2 import PGDL2
 
 
 def attack_test(adversary, testloader, args, net):
@@ -65,6 +66,8 @@ if __name__ == "__main__":
     parser.add_argument('--pgd_eps_step', default=2.0 / 255, type=float)
     parser.add_argument('--pgd_n_steps', default=40, type=int)
     parser.add_argument('--random_start', default=True, type=bool)
+    parser.add_argument('--eps_ord', default='Linf', type=str)
+    parser.add_argument('--eps_division', default=1e-10, type=float)
     args = parser.parse_args()
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print('Arguments for attack:')
@@ -101,7 +104,8 @@ if __name__ == "__main__":
     net.load_state_dict(pre_model['net'])
 
     # advesary = FGSM(net, args)
-    advesary = PGD(net, args)
+    # advesary = PGD(net, args)
+    advesary = PGDL2(net, args)
 
     attack_test(advesary, test_loader, args, net)
 
