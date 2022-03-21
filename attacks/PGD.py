@@ -49,13 +49,11 @@ class PGD(Attack):
             # print("PGD attack {} step!".format(step))
             adv_examples.requires_grad = True
             outputs = self.target_model(adv_examples)
-            # Use torch.nn loss
-            # criterion = nn.CrossEntropyLoss
-            # loss = criterion(outputs, labels)
+
             loss = F.cross_entropy(outputs, labels)
 
             gradients = torch.autograd.grad(loss, adv_examples)[0]
-            # consider eps is a vector ?
+
             adv_examples = adv_examples.detach() + self.eps_step * gradients.sign()
             perturbation = torch.clamp(adv_examples - imgs, min=-self.eps, max=self.eps)
             adv_examples = torch.clamp(adv_examples + perturbation, min=0, max=1).detach()
