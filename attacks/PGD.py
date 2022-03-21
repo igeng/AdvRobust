@@ -15,6 +15,7 @@ from Attacks import Attack
 class PGD(Attack):
     """
     Project Gradient Dscent (PGD)
+    Distance Measure : Linf
     Paper link:
     :argument: target_model {nn.Module} -- Target model to be attacked.
     :argument: eps {float} -- Magnitude of perturbation.
