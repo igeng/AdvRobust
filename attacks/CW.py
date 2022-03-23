@@ -37,7 +37,7 @@ class CW(Attack):
         return 0.5 * torch.log((1 + x) / (1 - x))
 
     def _scaler(self, imgs_atanh):
-        return 0.5 * ((torch.tanh(imgs_atanh)) + 1)
+        return 0.5 * (torch.tanh(imgs_atanh) + 1)
 
     def _f(self, adv, labels):
         outputs = self.target_model(adv)
