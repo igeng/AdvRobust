@@ -14,3 +14,4 @@ from .PGDL2 import *
 from .BIM import *
 from .MIM import *
 from .CW import *
+from .CWL2 import *
