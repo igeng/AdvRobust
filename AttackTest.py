@@ -60,6 +60,7 @@ if __name__ == "__main__":
     parser.add_argument('--random_start', default=True, type=bool)
     parser.add_argument('--norm_ord', default='Linf', type=str)
     parser.add_argument('--eps_division', default=1e-10, type=float)
+    parser.add_argument('--attack_targeted', default=False, type=bool)
     # FGSM attack setting.
     parser.add_argument('--fgsm_epsilon', default=2.0 / 255, type=float)
     # PGD attack setting.
@@ -74,6 +75,12 @@ if __name__ == "__main__":
     parser.add_argument('--mim_epsilon', default=8.0 / 255, type=float)
     parser.add_argument('--mim_eps_iter', default=2.0 / 255, type=float)
     parser.add_argument('-mim_n_iters', default=5, type=int)
+    # CW attack setting.
+    parser.add_argument('--cw_c', default=1e+100, type=float)
+    parser.add_argument('--cw_k', default=-10000.0, type=float)
+    parser.add_argument('--cw_n_iters', default=1000, type=int)
+    parser.add_argument('--cw_lr', default=0.0001, type=float)
+    parser.add_argument('--cw_binary_search_steps', default=900, type=int)
 
     args = parser.parse_args()
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -114,7 +121,9 @@ if __name__ == "__main__":
     # advesary = PGD(net, args)
     # advesary = PGDL2(net, args)
     # advesary = BIM(net, args)
-    advesary = MIM(net, args)
+    # advesary = MIM(net, args)
+    # advesary = CW(net, args)
+    advesary = CWL2(net, args)
 
     attack_test(advesary, test_loader, args, net)
 
