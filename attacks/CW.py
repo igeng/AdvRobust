@@ -17,6 +17,7 @@ from .Attacks import Attack
 class CW(Attack):
     """
     CW
+    L2
     Paper link:
     :argument:
     :argument:
