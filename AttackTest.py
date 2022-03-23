@@ -80,7 +80,7 @@ if __name__ == "__main__":
     parser.add_argument('--cw_k', default=-10000.0, type=float)
     parser.add_argument('--cw_n_iters', default=1000, type=int)
     parser.add_argument('--cw_lr', default=0.0001, type=float)
-    parser.add_argument('--cw_binary_search_steps', default=900, type=int)
+    parser.add_argument('--cw_binary_search_steps', default=9, type=int)
 
     args = parser.parse_args()
     args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
