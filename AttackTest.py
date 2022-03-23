@@ -126,26 +126,3 @@ if __name__ == "__main__":
     advesary = CWL2(net, args)
 
     attack_test(advesary, test_loader, args, net)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
