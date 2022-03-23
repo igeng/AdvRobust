@@ -83,9 +83,6 @@ class CWL2(Attack):
 
         return best_adv_imgs
 
-
-
-
     def tanh(self, x):
         return 0.5 * (torch.tanh(x) + 1)
 
@@ -102,24 +99,3 @@ class CWL2(Attack):
         truth = torch.masked_select(outputs, labels_onehot.bool())
 
         return torch.clamp(truth - other, min=-self.k)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
