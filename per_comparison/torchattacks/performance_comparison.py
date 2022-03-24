@@ -12,13 +12,22 @@ print("############### 1. Load CIAFR10 ###############")
 from robustbench.data import load_cifar10
 from robustbench.utils import load_model, clean_accuracy
 from utils import l2_distance
+from robustbench.model_zoo.cifar10 import linf
 
 images, labels = load_cifar10(n_examples=50, data_dir='../data')
 device = "cuda"
 
 # 2. Standard Accuracy
 print("############### 2. Standard Accuracy ###############")
-model_list = ['Standard', 'Wong2020Fast', 'Rice2020Overfitting']
+# model_list = ['Standard', 'Wong2020Fast', 'Rice2020Overfitting']
+
+model_list = []
+for k, _ in linf.items():
+    # model = load_model(model_name= k, dataset='cifar10', threat_model='Linf')
+    print(k)
+    model_list.append(k)
+print(model_list)
+
 for model_name in model_list:
     model = load_model(model_name, model_dir='../models', norm='Linf').to(device)
     acc = clean_accuracy(model, images.to(device), labels.to(device))
