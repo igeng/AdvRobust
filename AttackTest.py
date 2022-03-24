@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # MI-FGSM attack setting.
     parser.add_argument('--mim_epsilon', default=8.0 / 255, type=float)
     parser.add_argument('--mim_eps_iter', default=2.0 / 255, type=float)
-    parser.add_argument('-mim_n_iters', default=5, type=int)
+    parser.add_argument('--mim_n_iters', default=5, type=int)
     # CW attack setting.
     parser.add_argument('--cw_c', default=1e+100, type=float)
     parser.add_argument('--cw_k', default=-10000.0, type=float)
@@ -119,12 +119,31 @@ if __name__ == "__main__":
     net = torch.nn.DataParallel(net)
     net.load_state_dict(pre_model['net'])
 
-    advesary = FGSM(net, args)
-    # advesary = PGD(net, args)
-    # advesary = PGDL2(net, args)
-    # advesary = BIM(net, args)
-    # advesary = MIM(net, args)
-    # advesary = CW(net, args)
-    # advesary = CWL2(net, args)
+    for i in range(7):
+        advesary = Attack(net, args)
+        if i == 0:
+            print("####### AdvRobust FGSM attack #######")
+            advesary = FGSM(net, args)
+        elif i == 1:
+            print("####### AdvRobust PGD attack #######")
+            advesary = PGD(net, args)
+        elif i == 2:
+            print("####### AdvRobust PGDL2 attack #######")
+            advesary = PGDL2(net, args)
+        elif i == 3:
+            print("####### AdvRobust BIM attack #######")
+            advesary = BIM(net, args)
+        elif i == 4:
+            print("####### AdvRobust MIM attack #######")
+            advesary = MIM(net, args)
+        elif i == 5:
+            print("####### AdvRobust CW attack #######")
+            advesary = CW(net, args)
+        elif i == 6:
+            print("####### AdvRobust CWL2 attack #######")
+            advesary = CWL2(net, args)
+        else:
+            print("No attack is running, bye!")
+            break
 
-    attack_test(advesary, test_loader, args, net)
+        attack_test(advesary, test_loader, args, net)
