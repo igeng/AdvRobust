@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 '''
 @Project : AdvRobust 
-@File    : AttackTest.py
+@File    : AttackRobustBenchTest.py
 @Author  : igeng
 @Date    : 2022/3/18 16:54 
 @Descrip :
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # MI-FGSM attack setting.
     parser.add_argument('--mim_epsilon', default=8.0 / 255, type=float)
     parser.add_argument('--mim_eps_iter', default=2.0 / 255, type=float)
-    parser.add_argument('-mim_n_iters', default=5, type=int)
+    parser.add_argument('--mim_n_iters', default=5, type=int)
     # CW attack setting.
     parser.add_argument('--cw_c', default=1e+100, type=float)
     parser.add_argument('--cw_k', default=-10000.0, type=float)
