@@ -1,0 +1,37 @@
+D:\Anaconda\envs\torch\python.exe D:/PycharmProjects/AdvRobust/AttackTorchAttacksTest.py
+Arguments for attack:
+Namespace(seed=199592, attack='PGD', model='smallcnn', batch_size=100, iteration=100, momentum_decay=0.9, random_start=True, norm_ord='Linf', eps_division=1e-10, attack_targeted=False, fgsm_epsilon=0.00784313725490196, pgd_epsilon=0.3, pgd_eps_step=0.00784313725490196, pgd_n_steps=40, bim_epsilon=0.01568627450980392, bim_eps_iter=0.00392156862745098, bim_n_iters=10, mim_epsilon=0.03137254901960784, mim_eps_iter=0.00784313725490196, mim_n_iters=5, cw_c=1e+100, cw_k=-10000.0, cw_n_iters=1000, cw_lr=0.0001, cw_binary_search_steps=9, device=device(type='cuda', index=0))
+Preparing attack data!
+Files already downloaded and verified
+Building model smallcnn!
+Loading smallcnn from pre_models!
+####### AdvRobust FGSM attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 72.27.
+####### TorchAttacks FGSM attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 73.1.
+####### AdvRobust PGD attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 10.0.
+####### TorchAttacks PGD attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 0.0.
+####### AdvRobust PGDL2 attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 10.34.
+####### TorchAttacks PGDL2 attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 32.55.
+####### AdvRobust BIM attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 2.03.
+####### TorchAttacks BIM attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 63.93.
+####### AdvRobust MIM attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 3.94.
+####### TorchAttacks MIM attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 48.14.
+####### AdvRobust CW attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 28.4.
+####### TorchAttacks CW attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 74.91.
+####### AdvRobust CWL2 attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 79.2.
+####### TorchAttacks CW attack #######
+Model: smallcnn is attacked by PGD. The predict accuracy is 74.91.
+
+Process finished with exit code 0
