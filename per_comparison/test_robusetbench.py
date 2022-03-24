@@ -11,13 +11,18 @@ from robustbench.data import load_cifar10
 from robustbench.utils import load_model
 from robustbench.model_zoo.cifar10 import linf
 
-# x_test, y_test = load_cifar10(n_examples=50)
-
+# model_list contains all cifar10-Linf models.
+model_list = []
 for k, _ in linf.items():
-    model = load_model(model_name= k, dataset='cifar10', threat_model='Linf')
+    print(k)
+    model_list.append(k)
+print(model_list)
 
-# import foolbox as fb
-# fmodel = fb.PyTorchModel(model, bounds=(0, 1))
-#
-# _, advs, success = fb.attacks.LinfPGD()(fmodel, x_test.to('cuda:0'), y_test.to('cuda:0'), epsilons=[8/255])
-# print('Robust accuracy: {:.1%}'.format(1 - success.float().mean()))
+x_test, y_test = load_cifar10(n_examples=50)
+
+model = load_model(model_name= 'Carmon2019Unlabeled', dataset='cifar10', threat_model='Linf')
+
+from autoattack import AutoAttack
+adversary = AutoAttack(model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
+adversary.apgd.n_restarts = 1
+x_adv = adversary.run_standard_evaluation(x_test, y_test)
