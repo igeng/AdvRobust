@@ -8,15 +8,16 @@
 @Descrip :
 '''
 from robustbench.data import load_cifar10
-
-x_test, y_test = load_cifar10(n_examples=50)
-
 from robustbench.utils import load_model
+from robustbench.model_zoo.cifar10 import linf
 
-model = load_model(model_name='Carmon2019Unlabeled', dataset='cifar10', threat_model='Linf')
+# x_test, y_test = load_cifar10(n_examples=50)
 
-import foolbox as fb
-fmodel = fb.PyTorchModel(model, bounds=(0, 1))
+for k, _ in linf.items():
+    model = load_model(model_name= k, dataset='cifar10', threat_model='Linf')
 
-_, advs, success = fb.attacks.LinfPGD()(fmodel, x_test.to('cuda:0'), y_test.to('cuda:0'), epsilons=[8/255])
-print('Robust accuracy: {:.1%}'.format(1 - success.float().mean()))
+# import foolbox as fb
+# fmodel = fb.PyTorchModel(model, bounds=(0, 1))
+#
+# _, advs, success = fb.attacks.LinfPGD()(fmodel, x_test.to('cuda:0'), y_test.to('cuda:0'), epsilons=[8/255])
+# print('Robust accuracy: {:.1%}'.format(1 - success.float().mean()))
