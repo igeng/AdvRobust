@@ -105,8 +105,7 @@ if __name__ == "__main__":
 
     print('Building model {}!'.format(args.model))
     if args.model == 'smallcnn':
-        # net = SmallCNN()
-        net = load_model(model_name= 'Carmon2019Unlabeled', model_dir='./per_comparison/models',dataset='cifar10', threat_model='Linf').to("cuda")
+        net = SmallCNN()
     elif args.model == 'resnet18':
         net = ResNet18()
     elif args.model == 'wideresnet':
@@ -114,14 +113,14 @@ if __name__ == "__main__":
     else:
         raise ValueError('No such model...')
 
-    print('Loading {} From pre_models!'.format(args.model))
+    print('Loading {} from pre_models!'.format(args.model))
     # pre_model = torch.load(os.path.join('../pre_models/', args.model))
     pre_model = torch.load('./pre_models/pgd_adversarial_training_smallcnn')
-    # net = torch.nn.DataParallel(net)
-    # net.load_state_dict(pre_model['net'])
+    net = torch.nn.DataParallel(net)
+    net.load_state_dict(pre_model['net'])
 
-    # advesary = FGSM(net, args)
-    advesary = PGD(net, args)
+    advesary = FGSM(net, args)
+    # advesary = PGD(net, args)
     # advesary = PGDL2(net, args)
     # advesary = BIM(net, args)
     # advesary = MIM(net, args)
