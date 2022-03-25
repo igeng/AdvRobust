@@ -73,6 +73,6 @@ class PGDL2(Attack):
             factor = torch.min(factor, torch.ones_like(perturbation_norms))
             perturbation = perturbation * factor.view(-1, 1, 1, 1)
 
-            adv_examples = torch.clamp(adv_examples + perturbation, min=0, max=1).detach()
+            adv_examples = torch.clamp(imgs + perturbation, min=0, max=1).detach()
 
         return adv_examples
