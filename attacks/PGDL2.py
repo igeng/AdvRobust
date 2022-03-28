@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from .Attacks import Attack
 
 class PGDL2(Attack):
-    f"""
+    """
     Project Gradient Dscent (PGD)
     Distance Measure : L2
     Paper link:
