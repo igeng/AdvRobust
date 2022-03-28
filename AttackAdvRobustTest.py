@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 '''
-@Project : AdvRobust 
-@File    : AttackRobustBenchTest.py
+@Project : AdvRobust
+@File    : AttackAdvRobustTest.py
 @Author  : igeng
 @Date    : 2022/3/18 16:54
 @Descrip :

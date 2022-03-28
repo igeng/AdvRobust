@@ -16,7 +16,6 @@ import torch.nn.functional as F
 
 import torchvision
 import torchvision.transforms as transforms
-import torchattacks
 
 import os
 import argparse
@@ -27,10 +26,12 @@ import numpy as np
 from models import *
 
 from attacks import *
+import torchattacks
 
 from robustbench.utils import load_model
+from robustbench.model_zoo.cifar10 import linf
 
-def attack_test(adversary, testloader, args, net):
+def attack_test(adversary, testloader, args, net, lib_type):
     net.eval()
     adv_correct = 0
     total = 0
@@ -39,10 +40,17 @@ def attack_test(adversary, testloader, args, net):
     for batch_step, (imgs, labels) in enumerate(testloader):
         imgs, labels = imgs.to(args.device), labels.to(args.device)
         total += labels.size(0)
-        adv_examples = adversary.perturb(imgs, labels)
+        adv_examples = imgs
+        if lib_type == 'AdvRobust':
+            print("The {} step attack from AdvRobust!".format(batch_step))
+            adv_examples = adversary.perturb(imgs, labels)
+        elif lib_type == 'TorchAttacks':
+            print("The {} step attack from TorchAttacks!".format(batch_step))
+            adv_examples = adversary.forward(imgs, labels)
+        elif lib_type == 'Clean':
+            print("The {} step clean test!".format(batch_step))
         adv_outputs = net(adv_examples)
         _, predicted = adv_outputs.max(1)
-        # _, predicted = torch.max(adv_outputs, 1)
         adv_correct += predicted.eq(labels).sum().item()
 
         acc = 100 * adv_correct / total
@@ -51,29 +59,6 @@ def attack_test(adversary, testloader, args, net):
             (batch_step + 1) / batch_total * 100, acc), end='\r'
         )
     print('Model: {} is attacked by {}. The predict accuracy is {}.'.format(args.model, args.attack, acc))
-
-def attack_test_com(adversary, testloader, args, net):
-    net.eval()
-    adv_correct = 0
-    total = 0
-    batch_total = len(testloader)
-
-    for batch_step, (imgs, labels) in enumerate(testloader):
-        imgs, labels = imgs.to(args.device), labels.to(args.device)
-        total += labels.size(0)
-        adv_examples = adversary.forward(imgs, labels)
-        adv_outputs = net(adv_examples)
-        _, predicted = adv_outputs.max(1)
-        # _, predicted = torch.max(adv_outputs, 1)
-        adv_correct += predicted.eq(labels).sum().item()
-
-        acc = 100 * adv_correct / total
-
-        print('Progress : {:.2f}% / Accuracy : {:.2f}%'.format(
-            (batch_step + 1) / batch_total * 100, acc), end='\r'
-        )
-    print('Model: {} is attacked by {}. The predict accuracy is {}.'.format(args.model, args.attack, acc))
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Adversarial Attack Test')
@@ -128,82 +113,72 @@ if __name__ == "__main__":
     test_set = torchvision.datasets.CIFAR10(root='./datasets', train=False, download=True, transform=transforms_test)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
-    print('Building model {}!'.format(args.model))
-    if args.model == 'smallcnn':
-        net = SmallCNN()
-    elif args.model == 'resnet18':
-        net = ResNet18()
-    elif args.model == 'wideresnet':
-        net = WideResNet_28_10()
-    else:
-        raise ValueError('No such model...')
+    # model_list contains all cifar10-Linf models.
+    model_list = []
+    for model, _ in linf.items():
+        print('Loading {} from pre_models in RobustBench!'.format(model))
+        net = load_model(model_name=model, model_dir='./per_comparison/models', dataset='cifar10',
+                         threat_model='Linf').to("cuda")
+        net = torch.nn.DataParallel(net)
 
-    print('Loading {} from pre_models!'.format(args.model))
-    # pre_model = torch.load(os.path.join('../pre_models/', args.model))
-    pre_model = torch.load('./pre_models/pgd_adversarial_training_smallcnn')
-    net = torch.nn.DataParallel(net)
-    net.load_state_dict(pre_model['net'])
-
-    for i in range(7, 8):
-        advesary = None
-        if i == 0:
-            print("####### AdvRobust FGSM attack #######")
-            advesary = FGSM(net, args)
-            attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks FGSM attack #######")
-            advesary_com = torchattacks.FGSM(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        elif i == 1:
-            print("####### AdvRobust PGD attack #######")
-            advesary = PGD(net, args)
-            attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks PGD attack #######")
-            advesary_com = torchattacks.PGD(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        elif i == 2:
-            print("####### AdvRobust PGDL2 attack #######")
-            advesary = PGDL2(net, args)
-            attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks PGDL2 attack #######")
-            advesary_com = torchattacks.PGDL2(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        elif i == 3:
-            print("####### AdvRobust BIM attack #######")
-            advesary = BIM(net, args)
-            attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks BIM attack #######")
-            advesary_com = torchattacks.BIM(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        elif i == 4:
-            print("####### AdvRobust MIM attack #######")
-            advesary = MIM(net, args)
-            attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks MIM attack #######")
-            advesary_com = torchattacks.MIFGSM(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        elif i == 5:
-            print("####### AdvRobust CW attack #######")
-            advesary = CW(net, args)
-            attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks CW attack #######")
-            advesary_com = torchattacks.CW(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        elif i == 6:
-            print("####### AdvRobust CWL2 attack #######")
-            advesary = CWL2(net, args)
-            attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks CW attack #######")
-            advesary_com = torchattacks.CW(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        elif i == 7:
-            # print("####### AdvRobust CWL2 attack #######")
-            # advesary = CWL2(net, args)
-            # attack_test(advesary, test_loader, args, net)
-            print("####### TorchAttacks APGD attack #######")
-            advesary_com = torchattacks.APGD(net)
-            attack_test_com(advesary_com, test_loader, args, net)
-        else:
-            print("No attack is running, bye!")
-            break
-
-        # attack_test(advesary, test_loader, args, net)
+        for i in range():
+            advesary = None
+            if i == 0:
+                print("####### AdvRobust FGSM attack #######")
+                advesary = FGSM(net, args)
+                attack_test(advesary, test_loader, args, net, 'AdvRobust')
+                print("####### TorchAttacks FGSM attack #######")
+                advesary_com = torchattacks.FGSM(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            elif i == 1:
+                print("####### AdvRobust PGD attack #######")
+                advesary = PGD(net, args)
+                attack_test(advesary, test_loader, args, net, 'AdvRobust')
+                print("####### TorchAttacks PGD attack #######")
+                advesary_com = torchattacks.PGD(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            elif i == 2:
+                print("####### AdvRobust PGDL2 attack #######")
+                advesary = PGDL2(net, args)
+                attack_test(advesary, test_loader, args, net, 'AdvRobust')
+                print("####### TorchAttacks PGDL2 attack #######")
+                advesary_com = torchattacks.PGDL2(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            elif i == 3:
+                print("####### AdvRobust BIM attack #######")
+                advesary = BIM(net, args)
+                attack_test(advesary, test_loader, args, net, 'AdvRobust')
+                print("####### TorchAttacks BIM attack #######")
+                advesary_com = torchattacks.BIM(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            elif i == 4:
+                print("####### AdvRobust MIM attack #######")
+                advesary = MIM(net, args)
+                attack_test(advesary, test_loader, args, net, 'AdvRobust')
+                print("####### TorchAttacks MIM attack #######")
+                advesary_com = torchattacks.MIFGSM(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            elif i == 5:
+                print("####### AdvRobust CW attack #######")
+                advesary = CW(net, args)
+                attack_test(advesary, test_loader, args, net, 'AdvRobust')
+                print("####### TorchAttacks CW attack #######")
+                advesary_com = torchattacks.CW(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            elif i == 6:
+                print("####### AdvRobust CWL2 attack #######")
+                advesary = CWL2(net, args)
+                attack_test(advesary, test_loader, args, net, 'AdvRobust')
+                print("####### TorchAttacks CW attack #######")
+                advesary_com = torchattacks.CW(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            elif i == 7:
+                # print("####### AdvRobust CWL2 attack #######")
+                # advesary = CWL2(net, args)
+                # attack_test(advesary, test_loader, args, net)
+                print("####### TorchAttacks APGD attack #######")
+                advesary_com = torchattacks.APGD(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
+            else:
+                print("No attack is running, bye!")
+                break
