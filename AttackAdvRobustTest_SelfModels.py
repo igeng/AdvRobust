@@ -2,9 +2,9 @@
 # -*- coding: UTF-8 -*-
 '''
 @Project : AdvRobust 
-@File    : AttackRobustBenchTest.py
+@File    : AttackAdvRobustTest.py
 @Author  : igeng
-@Date    : 2022/3/18 16:54
+@Date    : 2022/3/18 16:54 
 @Descrip :
 '''
 from __future__ import print_function
@@ -26,10 +26,8 @@ import numpy as np
 from models import *
 
 from attacks import *
-import torchattacks
 
 from robustbench.utils import load_model
-from robustbench.model_zoo.cifar10 import linf
 
 def attack_test(adversary, testloader, args, net):
     net.eval()
@@ -65,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--norm_ord', default='Linf', type=str)
     parser.add_argument('--eps_division', default=1e-10, type=float)
     parser.add_argument('--attack_targeted', default=False, type=bool)
-    parser.add_argument('--decay', default=0.0001, type=float)
+    parser.add_argument('--decay', default=0.1, type=float)
     # FGSM attack setting.
     parser.add_argument('--fgsm_epsilon', default=2.0 / 255, type=float)
     # PGD attack setting.
@@ -106,44 +104,50 @@ if __name__ == "__main__":
     test_set = torchvision.datasets.CIFAR10(root='./datasets', train=False, download=True, transform=transforms_test)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
-    # model_list contains all cifar10-Linf models.
-    model_list = []
-    for model, _ in linf.items():
-        print('Loading {} from pre_models in RobustBench!'.format(model))
-        net = load_model(model_name = model, model_dir='./per_comparison/models',dataset='cifar10', threat_model='Linf').to("cuda")
-        net = torch.nn.DataParallel(net)
+    print('Building model {}!'.format(args.model))
+    if args.model == 'smallcnn':
+        net = SmallCNN()
+    elif args.model == 'resnet18':
+        net = ResNet18()
+    elif args.model == 'wideresnet':
+        net = WideResNet_28_10()
+    else:
+        raise ValueError('No such model...')
 
-        for i in range(1, 2):
-            adversary = Attack(net, args)
-            if i == 0:
-                print("####### AdvRobust FGSM attack #######")
-                adversary = FGSM(net, args)
-            elif i == 1:
-                print("####### AdvRobust PGD attack #######")
-                adversary = PGD(net, args)
-            elif i == 2:
-                print("####### AdvRobust PGDL2 attack #######")
-                adversary = PGDL2(net, args)
-            elif i == 3:
-                print("####### AdvRobust BIM attack #######")
-                adversary = BIM(net, args)
-            elif i == 4:
-                print("####### AdvRobust MIM attack #######")
-                adversary = MIM(net, args)
-            elif i == 5:
-                print("####### AdvRobust CW attack #######")
-                adversary = CW(net, args)
-            elif i == 6:
-                print("####### AdvRobust CWL2 attack #######")
-                adversary = CWL2(net, args)
-            elif i == 7:
-                print("####### AdvRobust WRNM_PGD attack #######")
-                adversary = WRNM_PGD(net, args)
-            elif i == 8:
-                print("####### AdvRobust WRNM_PGD_LTG attack #######")
-                adversary = WRNM_PGD_LTG(net, args)
-            else:
-                print("No attack is running, bye!")
-                break
+    print('Loading {} from pre_models!'.format(args.model))
+    # pre_model = torch.load(os.path.join('../pre_models/', args.model))
+    pre_model = torch.load('./pre_models/pgd_adversarial_training_smallcnn')
+    net = torch.nn.DataParallel(net)
+    net.load_state_dict(pre_model['net'])
 
-            attack_test(adversary, test_loader, args, net)
+    for i in range(7,8):
+        advesary = Attack(net, args)
+        if i == 0:
+            print("####### AdvRobust FGSM attack #######")
+            advesary = FGSM(net, args)
+        elif i == 1:
+            print("####### AdvRobust PGD attack #######")
+            advesary = PGD(net, args)
+        elif i == 2:
+            print("####### AdvRobust PGDL2 attack #######")
+            advesary = PGDL2(net, args)
+        elif i == 3:
+            print("####### AdvRobust BIM attack #######")
+            advesary = BIM(net, args)
+        elif i == 4:
+            print("####### AdvRobust MIM attack #######")
+            advesary = MIM(net, args)
+        elif i == 5:
+            print("####### AdvRobust CW attack #######")
+            advesary = CW(net, args)
+        elif i == 6:
+            print("####### AdvRobust CWL2 attack #######")
+            advesary = CWL2(net, args)
+        elif i == 7:
+            print("####### AdvRobust WRNM_PGD attack #######")
+            advesary = WRNM_PGD(net, args)
+        else:
+            print("No attack is running, bye!")
+            break
+
+        attack_test(advesary, test_loader, args, net)
