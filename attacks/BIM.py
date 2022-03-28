@@ -56,6 +56,6 @@ class BIM(Attack):
             # adv_examples = torch.clamp(adv_examples, max=1).detach()
 
             perturbation = torch.clamp(adv_examples - imgs, min=-self.eps, max=self.eps)
-            adv_examples = torch.clamp(adv_examples + perturbation, min=0, max=1).detach()
+            adv_examples = torch.clamp(imgs + perturbation, min=0, max=1).detach()
 
         return adv_examples
