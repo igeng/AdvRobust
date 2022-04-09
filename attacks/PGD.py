@@ -6,6 +6,9 @@
 @Author  : igeng
 @Date    : 2022/3/18 16:16 
 @Descrip :
+####### AdvRobust PGD attack #######
+Model: Andriushchenko2020Understanding is attacked by PGD.
+The predict accuracy is 47.42.
 '''
 import torch
 import torch.nn as nn
@@ -28,6 +31,7 @@ class PGD(Attack):
         self.n_steps = args.pgd_n_steps
         self.device = args.device
         self.random_start = args.random_start
+        self.C = 0.0
 
     def perturb(self, imgs, labels):
         """
@@ -46,16 +50,31 @@ class PGD(Attack):
             adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()
 
         for step in range(self.n_steps):
-            # print("PGD attack {} step!".format(step))
+
+            # adv_examples = best_adv_examples
+
             adv_examples.requires_grad = True
             outputs = self.target_model(adv_examples)
 
+            # CE loss
             loss = F.cross_entropy(outputs, labels)
+            # label_mask = F.one_hot(labels, 10)
+            # loss = F.cross_entropy(label_mask * outputs, labels) - F.cross_entropy((1-label_mask * outputs), labels)
+            # CW loss
+            # label_mask = F.one_hot(labels, 10)
+            # correct_logit = torch.mean(torch.sum(label_mask * outputs, dim=1))
+            # wrong_logit = torch.mean(torch.max((1 - label_mask) * outputs, dim=1)[0])
+            # loss = - F.relu(correct_logit - wrong_logit + self.C)
+            # print(loss)
 
             gradients = torch.autograd.grad(loss, adv_examples)[0]
 
             adv_examples = adv_examples.detach() + self.eps_step * gradients.sign()
             perturbation = torch.clamp(adv_examples - imgs, min=-self.eps, max=self.eps)
             adv_examples = torch.clamp(imgs + perturbation, min=0, max=1).detach()
+
+            # if loss > best_loss:
+            #     best_adv_examples = adv_examples
+            #     best_loss = loss
 
         return adv_examples
