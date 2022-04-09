@@ -42,10 +42,10 @@ def attack_test(adversary, testloader, args, net, lib_type):
         total += labels.size(0)
         adv_examples = imgs
         if lib_type == 'AdvRobust':
-            print("The {} step attack from AdvRobust!".format(batch_step))
+            # print("The {} step attack from AdvRobust!".format(batch_step))
             adv_examples = adversary.perturb(imgs, labels)
         elif lib_type == 'TorchAttacks':
-            print("The {} step attack from TorchAttacks!".format(batch_step))
+            # print("The {} step attack from TorchAttacks!".format(batch_step))
             adv_examples = adversary.forward(imgs, labels)
         elif lib_type == 'Clean':
             print("The {} step clean test!".format(batch_step))
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Adversarial Attack Test')
     parser.add_argument('--seed', default=199592, type=int)
     parser.add_argument('--attack', default='PGD', type=str)
-    parser.add_argument('--model', default='smallcnn', type=str)
+    parser.add_argument('--model', default='Carmon2019Unlabeled', type=str)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--iteration', default=100, type=int)
     parser.add_argument('--momentum_decay', default=0.9, type=float)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     parser.add_argument('--norm_ord', default='Linf', type=str)
     parser.add_argument('--eps_division', default=1e-10, type=float)
     parser.add_argument('--attack_targeted', default=False, type=bool)
-    parser.add_argument('--decay', default=0.0001, type=float)
+    parser.add_argument('--decay', default=0.1, type=float)
     # FGSM attack setting.
     parser.add_argument('--fgsm_epsilon', default=2.0 / 255, type=float)
     # PGD attack setting.
@@ -119,8 +119,9 @@ if __name__ == "__main__":
         print('Loading {} from pre_models in RobustBench!'.format(model))
         net = load_model(model_name = model, model_dir='./per_comparison/models',dataset='cifar10', threat_model='Linf').to("cuda")
         net = torch.nn.DataParallel(net)
+        args.model = model
 
-        for i in range(7, 8):
+        for i in range(1, 2):
             advesary = None
             if i == 0:
                 print("####### AdvRobust FGSM attack #######")
@@ -134,7 +135,7 @@ if __name__ == "__main__":
                 advesary = PGD(net, args)
                 attack_test(advesary, test_loader, args, net, 'AdvRobust')
                 print("####### TorchAttacks PGD attack #######")
-                advesary_com = torchattacks.PGD(net)
+                advesary_com = torchattacks.PGD(net, eps=8.0 / 255)
                 attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
             elif i == 2:
                 print("####### AdvRobust PGDL2 attack #######")
