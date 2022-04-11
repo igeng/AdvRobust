@@ -75,20 +75,24 @@ if __name__ == "__main__":
     parser.add_argument('--decay', default=0.5, type=float)
     # FGSM attack setting.
     parser.add_argument('--fgsm_epsilon', default=8.0 / 255, type=float)
-    # FGNM attack setting.
     parser.add_argument('--fgnm_alpha', default=8.0 / 255, type=float)
     # PGD attack setting.
-    parser.add_argument('--pgd_epsilon', default=8.0 / 255, type=float)
-    parser.add_argument('--pgd_eps_step', default=2.0 / 255, type=float)
-    parser.add_argument('--pgd_n_steps', default=40, type=int)
+    parser.add_argument('--pgd_epsilon', default=0.031, type=float)
+    parser.add_argument('--pgd_eps_step', default=0.003, type=float)
+    parser.add_argument('--pgd_n_steps', default=20, type=int)
     # BIM(I-FGSM) attack setting.
     parser.add_argument('--bim_epsilon', default=4.0/255, type=float)
     parser.add_argument('--bim_eps_iter', default=1.0 / 255, type=float)
     parser.add_argument('--bim_n_iters', default=10, type=int)
-    # MI-FGSM attack setting.
+    # MIM(MI-FGSM) attack setting.
     parser.add_argument('--mim_epsilon', default=8.0 / 255, type=float)
     parser.add_argument('--mim_eps_iter', default=2.0 / 255, type=float)
     parser.add_argument('--mim_n_iters', default=5, type=int)
+    # NIM(NI-FGSM) attack setting.
+    parser.add_argument('--nim_epsilon', default=8.0 / 255, type=float)
+    parser.add_argument('--nim_eps_iter', default=1.0 / 255, type=float)
+    parser.add_argument('--nim_n_iters', default=10, type=int)
+    parser.add_argument('--nim_decay', default=1.0, type=float)
     # CW attack setting.
     parser.add_argument('--cw_c', default=1e+100, type=float)
     parser.add_argument('--cw_k', default=-10000.0, type=float)
@@ -133,13 +137,13 @@ if __name__ == "__main__":
     model_list = []
     for model, _ in linf.items():
         print('Loading {} from pre_models in RobustBench!'.format(model))
-        # model = 'Andriushchenko2020Understanding'
+        model = 'Zhang2019Theoretically'
         net = load_model(model_name=model, model_dir='./per_comparison/models', dataset='cifar10',
                          threat_model='Linf').to("cuda")
         net = torch.nn.DataParallel(net)
         args.model = model
 
-        for i in range(14, 16):
+        for i in range(14, 17):
             advesary = None
             if i == 0:
                 print("#######################################################################################")
@@ -309,6 +313,13 @@ if __name__ == "__main__":
                 print("#######################################################################################")
                 print("####### AdvRobust MSPGD attack #######")
                 advesary_com = MSPGD(net, args)
+                attack_test(advesary_com, test_loader, args, net, 'AdvRobust')
+            elif i == 16:
+                print("#######################################################################################")
+                print("################################ NIFGSM + X  attack #####################################")
+                print("#######################################################################################")
+                print("####### AdvRobust NIFGSM attack #######")
+                advesary_com = NIM(net, args)
                 attack_test(advesary_com, test_loader, args, net, 'AdvRobust')
             else:
                 print("No attack is running, bye!")

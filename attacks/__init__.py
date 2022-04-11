@@ -24,6 +24,7 @@ from .WRNMM_equal import * # wangyun版本的等效变换
 from .PGDL2 import *
 from .BIM import *
 from .MIM import *
+from .NIM import *
 from .CW import *
 from .CWL2 import *
 from .LookAhead import *
