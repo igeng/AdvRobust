@@ -2,32 +2,36 @@
 # -*- coding: UTF-8 -*-
 '''
 @Project : AdvRobust 
-@File    : WRNMM.py
+@File    : PGD.py
 @Author  : igeng
-@Date    : 2022/3/26 18:50 
+@Date    : 2022/3/18 16:16 
 @Descrip :
+####### AdvRobust PGD attack #######
+Model: Andriushchenko2020Understanding is attacked by PGD.
+The predict accuracy is 47.42.
 '''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .Attacks import Attack
 
-class WRNMM(Attack):
+class WRM_PGD(Attack):
     """
-    Warm Restart Nesterov Momentum Method version 1.
+    Warm Restart Momentum Project Gradient Dscent (WRM_PGD)
+    Distance Measure : Linf
     Paper link:
-    :argument:
-    :argument:
+    :argument: target_model {nn.Module} -- Target model to be attacked.
+    :argument: eps {float} -- Magnitude of perturbation.
     """
+
     def __init__(self, target_model, args):
-        super(WRNMM, self).__init__("WRNMM", target_model)
+        super(WRM_PGD, self).__init__("WRM_PGD", target_model)
         self.eps = args.pgd_epsilon
         self.eps_step = args.pgd_eps_step
         self.n_steps = args.pgd_n_steps
-        self.decay = args.decay
         self.device = args.device
         self.random_start = args.random_start
-        self.nes_lr = args.nes_lr
+        self.C = 0.0
 
     def perturb(self, imgs, labels):
         """
@@ -45,24 +49,32 @@ class WRNMM(Attack):
             adv_examples = adv_examples + torch.empty_like(adv_examples).uniform_(-self.eps, self.eps)
             adv_examples = torch.clamp(adv_examples, min=0, max=1).detach()
 
-        pre_n_gradients = torch.empty_like(adv_examples)
-
         for step in range(self.n_steps):
-            # print("PGD attack {} step!".format(step))
+
+            # adv_examples = best_adv_examples
+
             adv_examples.requires_grad = True
             outputs = self.target_model(adv_examples)
 
+            # CE loss
             loss = F.cross_entropy(outputs, labels)
+            # label_mask = F.one_hot(labels, 10)
+            # loss = F.cross_entropy(label_mask * outputs, labels) - F.cross_entropy((1-label_mask * outputs), labels)
+            # CW loss
+            # label_mask = F.one_hot(labels, 10)
+            # correct_logit = torch.mean(torch.sum(label_mask * outputs, dim=1))
+            # wrong_logit = torch.mean(torch.max((1 - label_mask) * outputs, dim=1)[0])
+            # loss = - F.relu(correct_logit - wrong_logit + self.C)
+            # print(loss)
 
             gradients = torch.autograd.grad(loss, adv_examples)[0]
-            gradients = gradients / torch.mean(torch.abs(gradients), dim=(1, 2, 3), keepdim=True)
 
-            n_gradients = self.decay * pre_n_gradients + self.eps_step * gradients
-
-            adv_examples = adv_examples.detach() + self.decay * self.decay * pre_n_gradients + (1 + self.decay) * self.eps_step * gradients.sign()
-
+            adv_examples = adv_examples.detach() + self.eps_step * gradients.sign()
             perturbation = torch.clamp(adv_examples - imgs, min=-self.eps, max=self.eps)
             adv_examples = torch.clamp(imgs + perturbation, min=0, max=1).detach()
-            pre_n_gradients = n_gradients
+
+            # if loss > best_loss:
+            #     best_adv_examples = adv_examples
+            #     best_loss = loss
 
         return adv_examples
