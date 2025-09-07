@@ -137,13 +137,13 @@ if __name__ == "__main__":
     model_list = []
     for model, _ in linf.items():
         print('Loading {} from pre_models in RobustBench!'.format(model))
-        model = 'Zhang2019Theoretically'
+        # model = 'Zhang2019Theoretically'
         net = load_model(model_name=model, model_dir='./per_comparison/models', dataset='cifar10',
                          threat_model='Linf').to("cuda")
         net = torch.nn.DataParallel(net)
         args.model = model
 
-        for i in range(14, 17):
+        for i in range(4, 17):
             advesary = None
             if i == 0:
                 print("#######################################################################################")
@@ -216,6 +216,9 @@ if __name__ == "__main__":
                 print("#######################################################################################")
                 print("################################# AutoAttack attack ###################################")
                 print("#######################################################################################")
+                print("####### TorchAttacks AutoAttack attack #######")
+                advesary_com = torchattacks.AutoAttack(net)
+                attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
                 print("####### TorchAttacks APGD-CE attack #######")
                 advesary_com = torchattacks.APGD(net)
                 attack_test(advesary_com, test_loader, args, net, 'TorchAttacks')
